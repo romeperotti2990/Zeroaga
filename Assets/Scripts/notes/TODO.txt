@@ -1,0 +1,4 @@
+make world limit that you cant move/die out of
+make small bubble where asteroids cant spawn so the player does not spawn in one
+player random spawn
+fix big empty clumps

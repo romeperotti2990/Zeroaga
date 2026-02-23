@@ -1,0 +1,26 @@
+IMMIDEATE
+    zoom refining still
+    refine asteroid spawning
+    player hp and whatnot
+    split camera control code from player?
+    split particle effect
+    fix tilting
+    camera be slightly behind movement
+
+FEATURES?
+    minimap
+    boost (only boost forward, destroy small asteroids but big asteroids extra damage)
+    other weapons?
+    gold pieces (base material, shown in asteroids, split after the smallest part then must be picked up)
+    other materials
+    add bloom to particles (glow)
+    inventory + crafting
+    when asteroids spawn, they fade in from the border
+
+UPGRADES
+    only so many slots?
+    upgrades + levels, up to max
+    magnet upgrade 
+    damage upgrade
+    boost upgrade
+    shockwave upgrade

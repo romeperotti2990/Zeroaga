@@ -1,0 +1,4 @@
+main menu has play exit and maybe settings
+pressing play shows new world or exsisting ones
+pressing new world should show a bunch of options (size, difficulty, whatnot)
+upon starting the world it spawns all resources
