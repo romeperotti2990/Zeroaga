@@ -16,7 +16,7 @@ public class Asteroid : MonoBehaviour
     public float minSplitScale = 0.7f;  // Minimum scale before asteroid just dies without splitting
     public float splitSeparation = 0.8f;
     public float splitPushSpeed = 8f;
-    public float hitPushStrength = 6f;
+    public float hitPushStrength = 64f;
     public GameObject explosionParticlePrefab;  // Particle effect when asteroid is destroyed
     public GameObject hitEffectPrefab; // Particle effect when asteroid is hit
 

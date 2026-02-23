@@ -8,6 +8,8 @@ public class AsteroidSpawner : MonoBehaviour
     public int maxSpawnPerCheck = 3;
     public float spawnRadius = 15f;
     public float minSpawnDistance = 4f;
+    // radius around player where asteroids should not spawn
+    public float safeSpawnRadius = 3f;
     public float activeRadius = 20f;
     public float repositionDistance = 35f;
     public float spawnBuffer = 6f;
@@ -174,6 +176,8 @@ public class AsteroidSpawner : MonoBehaviour
             outOfViewRadius = spawnRadius;
         }
         minRadius = Mathf.Max(minRadius, outOfViewRadius + outOfViewPadding);
+        // ensure we don't spawn inside the player's safe bubble
+        minRadius = Mathf.Max(minRadius, safeSpawnRadius);
         float maxRadius = Mathf.Max(minRadius, minRadius + spawnBuffer);
 
         for (int attempt = 0; attempt < maxSpawnAttempts; attempt++)
@@ -187,6 +191,11 @@ public class AsteroidSpawner : MonoBehaviour
             randomDir.Normalize();
             Vector2 randomPos = randomDir * radius;
             Vector3 candidate = centerPos + new Vector3(randomPos.x, randomPos.y, 0f);
+            // avoid spawning inside the player's safe bubble and avoid camera view
+            if (Vector2.Distance(candidate, centerPos) < safeSpawnRadius)
+            {
+                continue;
+            }
             if (!IsInCameraView(candidate))
             {
                 return candidate;
@@ -276,7 +285,15 @@ public class AsteroidSpawner : MonoBehaviour
             Vector2 randDir = Random.insideUnitCircle;
             if (randDir.sqrMagnitude < 0.0001f) randDir = Vector2.right;
             randDir.Normalize();
-            float dist = Random.Range(0f, radius);
+            float dist;
+            if (radius <= safeSpawnRadius)
+            {
+                dist = radius; // place at edge if radius too small
+            }
+            else
+            {
+                dist = Random.Range(safeSpawnRadius, radius);
+            }
             Vector3 spawnPos = centerPos + new Vector3(randDir.x * dist, randDir.y * dist, 0f);
 
             GameObject asteroid = Instantiate(asteroidPrefab, spawnPos, Quaternion.identity);
