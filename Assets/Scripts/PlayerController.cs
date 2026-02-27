@@ -8,6 +8,25 @@ public class PlayerController : MonoBehaviour
     float rotateAxis = 0f;
     public float speed = 5f;
     public float rotateSpeed = 5f;
+    // World boundary settings
+    public bool useWorldBounds = true;
+    // If true, uses a circular bound defined by worldLimitRadius. If false, uses the Rect `worldBounds`.
+    public bool useCircularWorldBounds = false;
+    public Rect worldBounds = new Rect(-20f, -20f, 40f, 40f);
+    public float worldLimitRadius = 20f;
+    // Option to base the world limit on the AsteroidSpawner (giant circular world)
+    public bool useAsteroidSpawnerBounds = true;
+    // follow the spawner's transform as the center of the circle
+    public bool followAsteroidSpawnerCenter = true;
+    // computed or inspector-overridable center for circular bounds
+    public Vector2 worldBoundsCenter = Vector2.zero;
+    private AsteroidSpawner asteroidSpawnerRef;
+    // Visualization options
+    public bool showBoundaryInScene = true;
+    public bool showBoundaryInGame = false;
+    public int boundarySegments = 64;
+    public float boundaryLineWidth = 0.08f;
+    private LineRenderer boundaryRenderer;
 
     // Zoom
     public Camera targetCamera;
@@ -91,6 +110,37 @@ public class PlayerController : MonoBehaviour
 
         CacheDefaultZoom();
         SetZoomTarget();
+
+        // If requested, find the AsteroidSpawner and use its large field radius as the circular world limit
+        if (useAsteroidSpawnerBounds)
+        {
+            AsteroidSpawner sp = FindObjectOfType<AsteroidSpawner>();
+            if (sp != null)
+            {
+                asteroidSpawnerRef = sp;
+                useWorldBounds = true;
+                useCircularWorldBounds = true;
+                worldLimitRadius = sp.largeFieldRadius;
+                worldBoundsCenter = sp.transform.position;
+            }
+        }
+
+        // If requested, create a LineRenderer to visualize the boundary in-game
+        if (showBoundaryInGame)
+        {
+            GameObject go = new GameObject("BoundaryRenderer");
+            go.transform.SetParent(transform, false);
+            boundaryRenderer = go.AddComponent<LineRenderer>();
+            boundaryRenderer.loop = true;
+            boundaryRenderer.useWorldSpace = true;
+            boundaryRenderer.positionCount = Mathf.Max(3, boundarySegments);
+            boundaryRenderer.startWidth = boundaryLineWidth;
+            boundaryRenderer.endWidth = boundaryLineWidth;
+            var mat = new Material(Shader.Find("Sprites/Default"));
+            mat.color = Color.cyan;
+            boundaryRenderer.material = mat;
+            UpdateBoundaryRenderer();
+        }
     }
 
     // Spawn Projectiles at fire points
@@ -113,6 +163,53 @@ public class PlayerController : MonoBehaviour
         Vector3 localMove = transform.right * moveDir.x + transform.up * moveDir.y;
         pos += localMove * speed * Time.deltaTime;
         transform.position = pos;
+
+        // Update bounds center/radius from AsteroidSpawner if requested
+        if (useAsteroidSpawnerBounds && asteroidSpawnerRef == null)
+        {
+            asteroidSpawnerRef = FindObjectOfType<AsteroidSpawner>();
+        }
+
+        if (asteroidSpawnerRef != null && followAsteroidSpawnerCenter)
+        {
+            worldBoundsCenter = asteroidSpawnerRef.transform.position;
+            worldLimitRadius = asteroidSpawnerRef.largeFieldRadius;
+            useCircularWorldBounds = true;
+            useWorldBounds = true;
+        }
+
+        // Enforce world boundaries so the player can't move outside the playable area
+        if (useWorldBounds)
+        {
+            Vector3 clamped = transform.position;
+            if (useCircularWorldBounds)
+            {
+                Vector2 center = worldBoundsCenter; // use the computed/inspector center
+                Vector2 offset = (Vector2)clamped - center;
+                float dist = offset.magnitude;
+                if (dist > worldLimitRadius)
+                {
+                    Vector2 limited = offset.normalized * worldLimitRadius;
+                    clamped = new Vector3(center.x + limited.x, center.y + limited.y, clamped.z);
+                    transform.position = clamped;
+                    moveDir = Vector2.zero;
+                }
+            }
+            else
+            {
+                float minX = worldBounds.xMin;
+                float maxX = worldBounds.xMax;
+                float minY = worldBounds.yMin;
+                float maxY = worldBounds.yMax;
+                float newX = Mathf.Clamp(clamped.x, minX, maxX);
+                float newY = Mathf.Clamp(clamped.y, minY, maxY);
+                if (newX != clamped.x || newY != clamped.y)
+                {
+                    transform.position = new Vector3(newX, newY, clamped.z);
+                    moveDir = Vector2.zero;
+                }
+            }
+        }
 
         // 2D rotation on z axis (apply axis set by OnRotate)
         if (!Mathf.Approximately(rotateAxis, 0f))
@@ -153,6 +250,55 @@ public class PlayerController : MonoBehaviour
                 Fire();
                 fireTimer -= fireCooldown;
             }
+        }
+
+        // update boundary renderer if active
+        if (showBoundaryInGame && boundaryRenderer != null)
+        {
+            UpdateBoundaryRenderer();
+        }
+
+    }
+
+    void OnDrawGizmos()
+    {
+        if (!showBoundaryInScene || !useWorldBounds || !useCircularWorldBounds)
+            return;
+
+        // Prefer asteroid spawner center if available
+        Vector2 center = worldBoundsCenter;
+        if (asteroidSpawnerRef == null)
+        {
+            asteroidSpawnerRef = FindObjectOfType<AsteroidSpawner>();
+        }
+        if (asteroidSpawnerRef != null && followAsteroidSpawnerCenter)
+        {
+            center = asteroidSpawnerRef.transform.position;
+        }
+
+        Gizmos.color = new Color(0f, 1f, 1f, 0.6f);
+        Gizmos.DrawWireSphere(new Vector3(center.x, center.y, transform.position.z), worldLimitRadius);
+    }
+
+
+    void UpdateBoundaryRenderer()
+    {
+        if (boundaryRenderer == null) return;
+
+        Vector2 center = worldBoundsCenter;
+        if (asteroidSpawnerRef != null && followAsteroidSpawnerCenter)
+        {
+            center = asteroidSpawnerRef.transform.position;
+        }
+
+        int segs = Mathf.Max(3, boundarySegments);
+        boundaryRenderer.positionCount = segs;
+        for (int i = 0; i < segs; i++)
+        {
+            float t = (float)i / segs * Mathf.PI * 2f;
+            float x = Mathf.Cos(t) * worldLimitRadius + center.x;
+            float y = Mathf.Sin(t) * worldLimitRadius + center.y;
+            boundaryRenderer.SetPosition(i, new Vector3(x, y, transform.position.z));
         }
     }
 

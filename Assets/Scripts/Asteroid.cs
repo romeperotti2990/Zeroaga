@@ -17,6 +17,8 @@ public class Asteroid : MonoBehaviour
     public float splitSeparation = 0.8f;
     public float splitPushSpeed = 8f;
     public float hitPushStrength = 64f;
+    // maximum allowed speed after impulses (prevents projectiles/bloom changes causing runaway)
+    public float maxVelocity = 12f;
     public GameObject explosionParticlePrefab;  // Particle effect when asteroid is destroyed
     public GameObject hitEffectPrefab; // Particle effect when asteroid is hit
 
@@ -112,6 +114,9 @@ public class Asteroid : MonoBehaviour
             float massFactor = Mathf.Max(0.1f, mass);
             velocity += pushDir * (hitPushStrength / massFactor);
 
+            // Clamp velocity to avoid runaway speeds from strong hits
+            velocity = Vector2.ClampMagnitude(velocity, maxVelocity);
+
             TakeDamage(1, hitPoint);
             Destroy(collision.gameObject);  // Destroy the projectile
             return;
@@ -136,6 +141,10 @@ public class Asteroid : MonoBehaviour
 
             velocity += impulse * invMassA;
             otherAsteroid.velocity -= impulse * invMassB;
+
+            // Clamp both asteroids' velocities to keep collisions stable
+            velocity = Vector2.ClampMagnitude(velocity, maxVelocity);
+            otherAsteroid.velocity = Vector2.ClampMagnitude(otherAsteroid.velocity, maxVelocity);
 
             // Add spin based on impact strength
             float spin = Mathf.Clamp(impulseScalar, 0f, collisionSpinImpulse);

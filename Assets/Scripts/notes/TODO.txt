@@ -1,3 +1,5 @@
-make world limit that you cant move/die out of
+make the world limit kill you
 player random spawn
 fix big empty clumps
+world border particle effect
+make pew pews not despawn until they hit something

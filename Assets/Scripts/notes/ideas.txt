@@ -12,8 +12,8 @@ FEATURES?
     boost (only boost forward, destroy small asteroids but big asteroids extra damage)
     other weapons?
     gold pieces (base material, shown in asteroids, split after the smallest part then must be picked up)
-    other materials
-    add bloom to particles (glow)
+    other materials (more would be able to spawn based on progression)
+    add bloom to particles / shots (glow)
     inventory + crafting
     when asteroids spawn, they fade in from the border
 
