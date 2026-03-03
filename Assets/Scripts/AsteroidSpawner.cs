@@ -111,7 +111,7 @@ public class AsteroidSpawner : MonoBehaviour
         EnsureCamera();
 
         // Get player position (or use origin if player not found)
-        Vector3 centerPos = playerTransform != null ? playerTransform.position : Vector3.zero;
+        Vector3 centerPos = playerTransform != null ? playerTransform.position : transform.position;
 
         Debug.Log($"Spawning {count} asteroids at position {centerPos}");
 

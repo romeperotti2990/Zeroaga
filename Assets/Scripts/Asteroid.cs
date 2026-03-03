@@ -17,7 +17,7 @@ public class Asteroid : MonoBehaviour
     public float splitSeparation = 0.8f;
     public float splitPushSpeed = 8f;
     public float hitPushStrength = 64f;
-    // maximum allowed speed after impulses (prevents projectiles/bloom changes causing runaway)
+    // Safety clamp to prevent runaway speeds after impulses
     public float maxVelocity = 12f;
     public GameObject explosionParticlePrefab;  // Particle effect when asteroid is destroyed
     public GameObject hitEffectPrefab; // Particle effect when asteroid is hit
@@ -26,6 +26,11 @@ public class Asteroid : MonoBehaviour
 
     public float maxDistanceFromPlayer = 30f;  // Max distance before bouncing back
     private Transform playerTransform;
+    // World border info (optional). If a GameObject with tag 'WorldBorder' exists and has a CircleCollider2D,
+    // we'll use it as a hard boundary fallback so asteroids can't pass through.
+    private bool haveWorldBorder = false;
+    private Vector2 worldBorderCenter = Vector2.zero;
+    private float worldBorderRadius = 0f;
 
     void Start()
     {
@@ -54,14 +59,29 @@ public class Asteroid : MonoBehaviour
         // Random rotation speed
         rotationSpeed = Random.Range(-30f, 30f);
 
-        float scale = transform.localScale.x;
-        if (scale <= minSplitScale)
+        // Try to find a world border collider by tag and cache its center/radius
+        GameObject border = GameObject.FindGameObjectWithTag("WorldBorder");
+        if (border != null)
+        {
+            CircleCollider2D col = border.GetComponent<CircleCollider2D>();
+            if (col != null)
+            {
+                haveWorldBorder = true;
+                worldBorderCenter = border.transform.position;
+                // account for transform scale
+                float scale = border.transform.lossyScale.x;
+                worldBorderRadius = col.radius * Mathf.Abs(scale);
+            }
+        }
+
+        float localScale = transform.localScale.x;
+        if (localScale <= minSplitScale)
         {
             health = 1;
         }
         else
         {
-            health = Mathf.Max(minHealth, Mathf.CeilToInt(scale * healthPerUnitScale));
+            health = Mathf.Max(minHealth, Mathf.CeilToInt(localScale * healthPerUnitScale));
         }
     }
 
@@ -79,14 +99,34 @@ public class Asteroid : MonoBehaviour
             }
         }
 
-        // Move asteroid
+        // Move asteroid with optional world-border fallback to reflect when crossing the border
+        Vector2 currentPos = transform.position;
+        Vector2 nextPos = currentPos + velocity * Time.deltaTime;
+
+        if (haveWorldBorder)
+        {
+            float distNext = Vector2.Distance(nextPos, worldBorderCenter);
+            if (distNext > worldBorderRadius)
+            {
+                // reflect velocity against border normal at the exit point
+                Vector2 normal = (nextPos - worldBorderCenter).normalized;
+                velocity = Vector2.Reflect(velocity, normal) * collisionRestitution;
+                velocity = Vector2.ClampMagnitude(velocity, maxVelocity);
+                // recompute nextPos using reflected velocity
+                nextPos = currentPos + velocity * Time.deltaTime;
+                // small nudge inward so asteroid doesn't stick outside
+                nextPos = (Vector2)worldBorderCenter + (nextPos - worldBorderCenter).normalized * (worldBorderRadius - 0.01f);
+                rotationSpeed += Random.Range(-collisionSpinImpulse, collisionSpinImpulse) * 0.05f;
+            }
+        }
+
         if (rb != null)
         {
-            rb.MovePosition(rb.position + velocity * Time.deltaTime);
+            rb.MovePosition(nextPos);
         }
         else
         {
-            transform.position += (Vector3)(velocity * Time.deltaTime);
+            transform.position = (Vector3)nextPos;
         }
 
         // Rotate asteroid
@@ -95,6 +135,37 @@ public class Asteroid : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
+        // Bounce off world border (support both trigger and collision setups)
+        if (collision != null && collision.gameObject != null && collision.gameObject.CompareTag("WorldBorder"))
+        {
+            Vector2 normal;
+            if (collision.contactCount > 0)
+            {
+                normal = collision.GetContact(0).normal;
+            }
+            else
+            {
+                // Fallback for no contact info: use vector from border center to asteroid
+                normal = ((Vector2)transform.position - (Vector2)collision.transform.position).normalized;
+            }
+
+                // Reflect velocity and apply restitution
+                velocity = Vector2.Reflect(velocity, normal) * collisionRestitution;
+
+                // Clamp after reflect
+                velocity = Vector2.ClampMagnitude(velocity, maxVelocity);
+
+                // Nudge asteroid slightly along its new direction so it doesn't stick in the border
+                if (velocity.sqrMagnitude > 0.0001f)
+                {
+                    transform.position += (Vector3)(velocity.normalized * 0.1f);
+                }
+
+                // Add some random spin from the bounce
+                rotationSpeed += Random.Range(-collisionSpinImpulse, collisionSpinImpulse) * 0.1f;
+            return;
+        }
+
         // Check if hit by projectile
         Projectile projectile = collision.gameObject.GetComponent<Projectile>();
         if (projectile != null)
@@ -114,7 +185,7 @@ public class Asteroid : MonoBehaviour
             float massFactor = Mathf.Max(0.1f, mass);
             velocity += pushDir * (hitPushStrength / massFactor);
 
-            // Clamp velocity to avoid runaway speeds from strong hits
+            // Clamp velocity to prevent runaway speeds from hits
             velocity = Vector2.ClampMagnitude(velocity, maxVelocity);
 
             TakeDamage(1, hitPoint);
@@ -150,6 +221,24 @@ public class Asteroid : MonoBehaviour
             float spin = Mathf.Clamp(impulseScalar, 0f, collisionSpinImpulse);
             rotationSpeed += Random.Range(-spin, spin);
             otherAsteroid.rotationSpeed += Random.Range(-spin, spin);
+        }
+    }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other == null || other.gameObject == null) return;
+
+        if (other.gameObject.CompareTag("WorldBorder"))
+        {
+            // For trigger borders, approximate normal from border center to asteroid
+            Vector2 normal = ((Vector2)transform.position - (Vector2)other.transform.position).normalized;
+            velocity = Vector2.Reflect(velocity, normal) * collisionRestitution;
+            velocity = Vector2.ClampMagnitude(velocity, maxVelocity);
+            if (velocity.sqrMagnitude > 0.0001f)
+            {
+                transform.position += (Vector3)(velocity.normalized * 0.1f);
+            }
+            rotationSpeed += Random.Range(-collisionSpinImpulse, collisionSpinImpulse) * 0.1f;
         }
     }
 
@@ -191,7 +280,7 @@ public class Asteroid : MonoBehaviour
             // Spawn at the same position to avoid visible separation
             float angle = angleStep * i;
             Vector2 splitDir = (Vector2)(Quaternion.Euler(0f, 0f, angle) * baseDir);
-            Vector3 spawnPos = transform.position;
+            Vector3 spawnPos = transform.position + (Vector3)(splitDir * 0.1f);
 
             GameObject newAsteroid = Instantiate(gameObject, spawnPos, Quaternion.identity);
             float childScale = Mathf.Max(minSplitScale, transform.localScale.x * 0.6f);
@@ -217,8 +306,9 @@ public class Asteroid : MonoBehaviour
                     rbNew.simulated = true;
                 }
 
-                // Set velocity with a strong outward push
-                asteroidScript.velocity = velocity * 0.3f + splitDir * splitPushSpeed;
+                // Set velocity with a strong outward push (clamped)
+                Vector2 childVel = velocity * 0.3f + splitDir * splitPushSpeed;
+                asteroidScript.velocity = Vector2.ClampMagnitude(childVel, maxVelocity);
                 asteroidScript.mass = mass * 0.6f;
                 asteroidScript.rotationSpeed = Random.Range(-50f, 50f);
 
