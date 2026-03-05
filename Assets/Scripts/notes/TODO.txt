@@ -1,4 +1,3 @@
-player random spawn
 fix big empty clumps
 adjust asteroids and fix jittering when shot
 
