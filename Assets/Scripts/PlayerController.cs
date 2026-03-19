@@ -103,7 +103,7 @@ public class PlayerController : MonoBehaviour
         if (sp != null)
         {
             asteroidSpawnerRef = sp;
-            worldLimitRadius = sp.largeFieldRadius;
+            worldLimitRadius = sp.asteroidRadius;
             worldBoundsCenter = sp.transform.position;
         }
     }
@@ -137,7 +137,7 @@ public class PlayerController : MonoBehaviour
         if (asteroidSpawnerRef != null)
         {
             worldBoundsCenter = asteroidSpawnerRef.transform.position;
-            worldLimitRadius = asteroidSpawnerRef.largeFieldRadius;
+            worldLimitRadius = asteroidSpawnerRef.asteroidRadius;
         }
 
         // Enforce a circular world boundary centered on `worldBoundsCenter`

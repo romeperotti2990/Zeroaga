@@ -1,6 +1,7 @@
 fix big empty clumps
 adjust asteroids and fix jittering when shot
-
+add trail to player
+make it so that the projectiles dont have a rigidbody and just code the asteroids to move maybe
 
 
 

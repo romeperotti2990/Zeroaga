@@ -1,4 +1,7 @@
 IMMIDEATE
+    speed trails
+    PIXILATE (MAKE IT LOOK SH**Y)
+    minimap
     zoom refining still
     refine asteroid spawning
     player hp and whatnot
@@ -8,8 +11,7 @@ IMMIDEATE
     camera be slightly behind movement
 
 FEATURES?
-    minimap
-    boost (only boost forward, destroy small asteroids but big asteroids extra damage)
+    boost (only boost forward, destroy small asteroids but big asteroids extra damage to player)
     other weapons?
     gold pieces (base material, shown in asteroids, split after the smallest part then must be picked up)
     other materials (more would be able to spawn based on progression)
