@@ -9,6 +9,11 @@ public class AsteroidSpawner : MonoBehaviour
     public int asteroidCount = 200; // Number of asteroids to create in the large field
     public float asteroidRadius = 500f; // Radius to distribute asteroids in the large field
 
+    [Header("Clustering")]
+    public int clusterCount = 8; // Number of clumps to create
+    public float clusterRadius = 50f; // Radius of each clump
+    [Range(0f, 1f)] public float clusterStrength = 0.8f; // Fraction of asteroids in clusters
+
     [Header("Player randomization")]
     public float worldRadius = 2000f;
     public int playerSpawnAttempts = 200;
@@ -132,24 +137,34 @@ public class AsteroidSpawner : MonoBehaviour
 
         Debug.Log($"Spawning large asteroid field: {count} asteroids within radius {radius} around {centerPos}");
 
+        // Create clump centers first
+        Vector2[] clumpCenters = new Vector2[Mathf.Max(1, clusterCount)];
+        for (int i = 0; i < clumpCenters.Length; i++)
+        {
+            Vector2 dir = Random.insideUnitCircle.normalized;
+            float dist = Mathf.Sqrt(Random.value) * (radius - safeRad) + safeRad;
+            clumpCenters[i] = (Vector2)centerPos + dir * dist;
+        }
+
         for (int i = 0; i < count; i++)
         {
-            Vector2 randDir = Random.insideUnitCircle;
-            if (randDir.sqrMagnitude < 0.0001f) randDir = Vector2.right;
-            randDir.Normalize();
-            float dist;
-            if (radius <= safeRad)
+            Vector3 spawnPos;
+            if (Random.value < clusterStrength && clumpCenters.Length > 0)
             {
-                dist = radius; // place at edge if radius too small
+                Vector2 clumpCenter = clumpCenters[Random.Range(0, clumpCenters.Length)];
+                Vector2 offset = Random.insideUnitCircle * clusterRadius;
+                spawnPos = new Vector3(clumpCenter.x + offset.x, clumpCenter.y + offset.y, centerPos.z);
             }
             else
             {
-                dist = Random.Range(safeRad, radius);
+                Vector2 dir = Random.insideUnitCircle;
+                if (dir.sqrMagnitude < 0.0001f) dir = Vector2.right;
+                dir.Normalize();
+                float dist = Mathf.Sqrt(Random.value) * (radius - safeRad) + safeRad;
+                spawnPos = new Vector3(centerPos.x + dir.x * dist, centerPos.y + dir.y * dist, centerPos.z);
             }
-            Vector3 spawnPos = centerPos + new Vector3(randDir.x * dist, randDir.y * dist, 0f);
 
             GameObject asteroid = Instantiate(asteroidPrefab, spawnPos, Quaternion.identity);
-
             float scale = Random.Range(minSize.x, maxSize.x);
             asteroid.transform.localScale = Vector3.one * scale;
 

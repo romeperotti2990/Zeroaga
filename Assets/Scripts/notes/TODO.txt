@@ -1,13 +1,12 @@
-fix big empty clumps
 adjust asteroids and fix jittering when shot
-add trail to player
+improve trail on the player
 make it so that the projectiles dont have a rigidbody and just code the asteroids to move maybe
-
+MINIMAP GRAHHHHHHHH
 
 
 
 LATER
-make the world limit fade out the asteroids
+make the world limit fade out and in the asteroids
 FIX BLOOM
 make the world limit kill you
 refine world border particle effect

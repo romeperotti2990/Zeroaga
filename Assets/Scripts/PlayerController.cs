@@ -21,10 +21,8 @@ public class PlayerController : MonoBehaviour
     public float zoomedOutFov = 60f;
     public float zoomTransitionSpeed = 80f;
     bool isZoomedOut = false;
-    float defaultOrthoSize = 5f;
-    float defaultFov = 60f;
-    float targetOrthoSize = 10f;
-    float targetFov = 60f;
+    float startOrthoSize = 5f;
+    float startFov = 60f;
 
     // Visual tilt
     public Transform visualTransform;  // Assign the Visual child in the Inspector
@@ -85,7 +83,6 @@ public class PlayerController : MonoBehaviour
         }
 
         isZoomedOut = !isZoomedOut;
-        SetZoomTarget();
     }
 
     void Start()
@@ -96,7 +93,6 @@ public class PlayerController : MonoBehaviour
         }
 
         CacheDefaultZoom();
-        SetZoomTarget();
 
         // Hardcode: always try to follow the AsteroidSpawner for a circular world limit.
         AsteroidSpawner sp = FindObjectOfType<AsteroidSpawner>();
@@ -193,9 +189,6 @@ public class PlayerController : MonoBehaviour
                 fireTimer -= fireCooldown;
             }
         }
-
-        // (no in-game boundary renderer — visualization is done via Gizmos)
-
     }
 
     void OnDrawGizmos()
@@ -215,9 +208,6 @@ public class PlayerController : MonoBehaviour
         Gizmos.DrawWireSphere(new Vector3(center.x, center.y, transform.position.z), worldLimitRadius);
     }
 
-
-    // (removed in-game LineRenderer boundary support — use Gizmos for visualization)
-
     void CacheDefaultZoom()
     {
         if (targetCamera == null)
@@ -227,28 +217,11 @@ public class PlayerController : MonoBehaviour
 
         if (targetCamera.orthographic)
         {
-            defaultOrthoSize = targetCamera.orthographicSize;
+            startOrthoSize = targetCamera.orthographicSize;
         }
         else
         {
-            defaultFov = targetCamera.fieldOfView;
-        }
-    }
-
-    void SetZoomTarget()
-    {
-        if (targetCamera == null)
-        {
-            return;
-        }
-
-        if (targetCamera.orthographic)
-        {
-            targetOrthoSize = isZoomedOut ? zoomedOutSize : defaultOrthoSize;
-        }
-        else
-        {
-            targetFov = isZoomedOut ? zoomedOutFov : defaultFov;
+            startFov = targetCamera.fieldOfView;
         }
     }
 
@@ -261,12 +234,14 @@ public class PlayerController : MonoBehaviour
 
         if (targetCamera.orthographic)
         {
-            float nextSize = Mathf.MoveTowards(targetCamera.orthographicSize, targetOrthoSize, zoomTransitionSpeed * Time.deltaTime);
+            float desiredSize = isZoomedOut ? zoomedOutSize : startOrthoSize;
+            float nextSize = Mathf.MoveTowards(targetCamera.orthographicSize, desiredSize, zoomTransitionSpeed * Time.deltaTime);
             targetCamera.orthographicSize = nextSize;
         }
         else
         {
-            float nextFov = Mathf.MoveTowards(targetCamera.fieldOfView, targetFov, zoomTransitionSpeed * Time.deltaTime);
+            float desiredFov = isZoomedOut ? zoomedOutFov : startFov;
+            float nextFov = Mathf.MoveTowards(targetCamera.fieldOfView, desiredFov, zoomTransitionSpeed * Time.deltaTime);
             targetCamera.fieldOfView = nextFov;
         }
     }
