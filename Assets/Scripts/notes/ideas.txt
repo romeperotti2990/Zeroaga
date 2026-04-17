@@ -1,13 +1,12 @@
 IMMIDEATE
-    speed trails
+    make speed trails make sense / effect for tilting
     PIXILATE (MAKE IT LOOK SH**Y)
     zoom refining still
     refine asteroid spawning
     player hp and whatnot
-    split camera control code from player?
-    split particle effect
-    fix tilting
     camera be slightly behind movement
+    make it so you can just zoom out the main camera freely and not just have 2 settings
+    squares that fade out when you move
 
 FEATURES?
     boost (only boost forward, destroy small asteroids but big asteroids extra damage to player)
@@ -17,6 +16,8 @@ FEATURES?
     add bloom to particles / shots (glow)
     inventory + crafting
     when asteroids spawn, they fade in from the border
+    adding like a radial grid in the background
+    self destruct and it clears the map but you die
 
 UPGRADES
     only so many slots?
