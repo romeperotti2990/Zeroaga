@@ -1,7 +1,6 @@
-adjust asteroids and fix jittering when shot
 improve trail on the player
 make it so that the projectiles dont have a rigidbody and just code the asteroids to move maybe
-improve the minimap (make it show the player and the players viewpoint, as well as make the rawimage a circle)
+improve the minimap (make it show the player and the players viewpoint, as well as make the rawimage bakcground a circle)
 
 
 
