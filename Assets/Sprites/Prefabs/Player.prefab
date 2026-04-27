@@ -32,7 +32,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 227523814896456059}
-  - {fileID: 8760630377777494377}
   - {fileID: 8820915241214179961}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -50,6 +49,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 30
   rotateSpeed: 180
+  boundarySegments: 64
   targetCamera: {fileID: 8498796698264521122}
   zoomedOutSize: 24
   zoomedOutFov: 60
@@ -192,6 +192,10 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 3480aa70-6f7e-42bf-8694-e2dfca811643
     m_ActionName: 'Player/Zoom[/DualSenseGamepadHID/leftTrigger,/Keyboard/v,/Keyboard/f]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: c2f4cf85-1fad-4e89-8c3a-309a9ab08ec5
+    m_ActionName: 'Player/Map[/Keyboard/v]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: Keyboard&Mouse
   m_DefaultActionMap: Player
@@ -421,66 +425,3 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
---- !u!1 &9127106840926894711
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 8760630377777494377}
-  - component: {fileID: 1877508719008837263}
-  m_Layer: 0
-  m_Name: Asteroid Spawner
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &8760630377777494377
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9127106840926894711}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.05, y: -0.31, z: 0}
-  m_LocalScale: {x: 1.1705633, y: 1.1705633, z: 1.1705633}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 5629020498825109190}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1877508719008837263
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9127106840926894711}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8c1a2d516def3b489206754e89b6fdf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  asteroidPrefab: {fileID: 3309684919957623880, guid: 64cb9a2c698ac8443b24af3c074c3372, type: 3}
-  minAsteroidCount: 30
-  maxTotalAsteroids: 20
-  maxSpawnPerCheck: 3
-  spawnRadius: 15
-  minSpawnDistance: 10
-  activeRadius: 20
-  repositionDistance: 35
-  spawnBuffer: 6
-  outOfViewPadding: 2
-  targetCamera: {fileID: 8498796698264521122}
-  minSize: {x: 4, y: 4}
-  maxSize: {x: 6, y: 6}
-  spawnCheckInterval: 0.1
-  maxSpawnAttempts: 12
-  spawnLargeFieldOnce: 1
-  largeFieldCount: 200
-  largeFieldRadius: 500
-  playerTransform: {fileID: 5629020498825109190}

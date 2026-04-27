@@ -28,6 +28,13 @@ public class PlayerController : MonoBehaviour
     public Transform visualTransform;  // Assign the Visual child in the Inspector
     public float tiltAmount = 15f;  // Max tilt angle in degrees when moving
 
+    // Movement particles
+    public ParticleSystem movementTrail;
+    public float movementTrailEmitInterval = 0.05f;
+    public float movementTrailSpeed = 4f;
+    public float movementTrailSpreadAngle = 12f;
+    float movementTrailTimer = 0f;
+
     // Shooting
     public GameObject projectilePrefab;
     public float fireCooldown = 0.1f;
@@ -92,6 +99,7 @@ public class PlayerController : MonoBehaviour
             targetCamera = Camera.main;
         }
 
+        EnsureMovementTrailInstance();
         CacheDefaultZoom();
 
         // Hardcode: always try to follow the AsteroidSpawner for a circular world limit.
@@ -117,8 +125,67 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    void EnsureMovementTrailInstance()
+    {
+        if (movementTrail == null)
+        {
+            return;
+        }
+
+        if (!movementTrail.gameObject.scene.IsValid())
+        {
+            movementTrail = Instantiate(movementTrail, transform);
+        }
+        else
+        {
+            movementTrail.transform.SetParent(transform, false);
+        }
+
+        movementTrail.transform.localPosition = Vector3.zero;
+        movementTrail.transform.localRotation = Quaternion.identity;
+        movementTrail.gameObject.SetActive(true);
+        movementTrail.Play(true);
+    }
+
     void Update()
     {
+        bool isMoving = moveDir.sqrMagnitude > 0.0001f;
+
+        if (movementTrail != null)
+        {
+            if (isMoving)
+            {
+                Vector3 moveWorld = (transform.right * moveDir.x + transform.up * moveDir.y).normalized;
+                movementTrailTimer += Time.deltaTime;
+
+                if (movementTrailTimer >= movementTrailEmitInterval)
+                {
+                    movementTrailTimer = 0f;
+
+                    if (!movementTrail.isPlaying)
+                    {
+                        movementTrail.Play();
+                    }
+
+                    float spread = Random.Range(-movementTrailSpreadAngle, movementTrailSpreadAngle);
+                    Vector3 spreadMove = Quaternion.Euler(0f, 0f, spread) * moveWorld;
+
+                    ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams();
+                    emitParams.velocity = -spreadMove * movementTrailSpeed;
+                    movementTrail.Emit(emitParams, 1);
+                }
+            }
+            else
+            {
+                movementTrailTimer = 0f;
+
+                if (movementTrail.isPlaying)
+                {
+                    movementTrail.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+                }
+            }
+        }
+
         // 2D movement relative to the player's facing (local space)
         Vector3 pos = transform.position;
         Vector3 localMove = transform.right * moveDir.x + transform.up * moveDir.y;

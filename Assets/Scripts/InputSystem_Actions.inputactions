@@ -40,6 +40,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Map",
+                    "type": "Button",
+                    "id": "c2f4cf85-1fad-4e89-8c3a-309a9ab08ec5",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -232,28 +241,6 @@
                 },
                 {
                     "name": "",
-                    "id": "17de88ee-6c4b-45b7-96e5-1812328f9027",
-                    "path": "<Keyboard>/space",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Fire",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "84942392-56c7-4aa9-a03a-a4a096827bb9",
-                    "path": "<Mouse>/leftButton",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Fire",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "ac9ff6a6-96f4-4aec-b516-b93bc8a63f05",
                     "path": "<Gamepad>/buttonWest",
                     "interactions": "",
@@ -273,39 +260,6 @@
                     "action": "Fire",
                     "isComposite": false,
                     "isPartOfComposite": false
-                },
-                {
-                    "name": "1D Axis",
-                    "id": "b5f50ddf-62ad-4894-aae1-1146dc6ad56d",
-                    "path": "1DAxis",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Rotate",
-                    "isComposite": true,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "negative",
-                    "id": "28b2acf7-13de-4097-9fef-c054f4961a7d",
-                    "path": "<Keyboard>/q",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Rotate",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "positive",
-                    "id": "6f3b3bab-4094-457f-a856-080ff80f223b",
-                    "path": "<Keyboard>/e",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Rotate",
-                    "isComposite": false,
-                    "isPartOfComposite": true
                 },
                 {
                     "name": "1D Axis",
@@ -419,8 +373,8 @@
                 },
                 {
                     "name": "",
-                    "id": "c911052d-964b-4e61-9fcb-16ffb29b0740",
-                    "path": "<Keyboard>/v",
+                    "id": "c851016e-4709-4cf2-b511-510788938d85",
+                    "path": "<Keyboard>/f",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -430,12 +384,12 @@
                 },
                 {
                     "name": "",
-                    "id": "c851016e-4709-4cf2-b511-510788938d85",
-                    "path": "<Keyboard>/f",
+                    "id": "85e7f018-44f5-4f91-8d98-76ba523fefdd",
+                    "path": "<Keyboard>/v",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Zoom",
+                    "action": "Map",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

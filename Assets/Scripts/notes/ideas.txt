@@ -3,11 +3,9 @@ IMMIDEATE
     PIXILATE (MAKE IT LOOK SH**Y)
     zoom refining still
     refine asteroid spawning
-    player hp and whatnot
     camera be slightly behind movement
     make it so you can just zoom out the main camera freely and not just have 2 settings
-
-    make the border hurt asteroids
+    make the border push the player and asteroids
 
 FEATURES?
     boost (only boost forward, destroy small asteroids but big asteroids extra damage to player)
