@@ -1,11 +1,11 @@
-improve trail on the player
 make it so that the projectiles dont have a rigidbody and just code the asteroids to move maybe
-improve the minimap (make it show the players viewpoint, as well as make the rawimage bakcground a circle)
+add the points and particles that suck into the player 
 
 
 
 LATER
 make the world limit fade out and in the asteroids
 FIX BLOOM
-make the world limit kill you
+make the world limit kill/push you
 refine world border particle effect
+minimap show player viewpoint?

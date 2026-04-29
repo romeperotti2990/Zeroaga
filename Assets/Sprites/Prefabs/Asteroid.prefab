@@ -58,7 +58,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 73133ebb1261348428e5387d6180b84c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -193,6 +193,8 @@ MonoBehaviour:
   minSplitScale: 0.8
   splitSeparation: 0.8
   splitPushSpeed: 8
+  hitPushStrength: 64
+  maxVelocity: 12
   explosionParticlePrefab: {fileID: 5438358786955506324, guid: 0d14e42ec32e3b747bfc6e5870f0bf82, type: 3}
   hitEffectPrefab: {fileID: 5438358786955506324, guid: 5aab3527df4531a48a088bc84db4c7eb, type: 3}
   rb: {fileID: 0}

@@ -1,11 +1,13 @@
 IMMIDEATE
-    make speed trails make sense / effect for tilting / squares that fade out when you move
+    I might want to remove moving normally side to side, to add some challenge and make the movement look good with the png tilting
+    effect for tilting?
     PIXILATE (MAKE IT LOOK SH**Y)
     zoom refining still
     refine asteroid spawning
     camera be slightly behind movement
     make it so you can just zoom out the main camera freely and not just have 2 settings
     make the border push the player and asteroids
+    pause with enter (just give the game a blue tint until you press it again)
 
 FEATURES?
     boost (only boost forward, destroy small asteroids but big asteroids extra damage to player)

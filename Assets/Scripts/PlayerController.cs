@@ -24,6 +24,9 @@ public class PlayerController : MonoBehaviour
     float startOrthoSize = 5f;
     float startFov = 60f;
 
+    // Map
+    public Minimap mapController;
+
     // Visual tilt
     public Transform visualTransform;  // Assign the Visual child in the Inspector
     public float tiltAmount = 15f;  // Max tilt angle in degrees when moving
@@ -89,7 +92,25 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        if (mapController != null && mapController.IsMapOpen)
+        {
+            return;
+        }
+
         isZoomedOut = !isZoomedOut;
+    }
+
+    public void OnMap(InputAction.CallbackContext ctx)
+    {
+        if (!ctx.performed)
+        {
+            return;
+        }
+
+        if (mapController != null)
+        {
+                mapController.RequestToggleMap();
+        }
     }
 
     void Start()
@@ -97,6 +118,11 @@ public class PlayerController : MonoBehaviour
         if (targetCamera == null)
         {
             targetCamera = Camera.main;
+        }
+
+        if (mapController == null)
+        {
+            mapController = FindObjectOfType<Minimap>();
         }
 
         EnsureMovementTrailInstance();
@@ -149,6 +175,19 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        if (mapController != null && mapController.IsMapOpen)
+        {
+            movementTrailTimer = 0f;
+            isShooting = false;
+
+            if (movementTrail != null && movementTrail.isPlaying)
+            {
+                movementTrail.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+            }
+
+            return;
+        }
+
         bool isMoving = moveDir.sqrMagnitude > 0.0001f;
 
         if (movementTrail != null)
