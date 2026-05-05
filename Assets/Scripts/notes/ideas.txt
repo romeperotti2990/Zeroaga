@@ -1,5 +1,5 @@
 IMMIDEATE
-    I might want to remove moving normally side to side, to add some challenge and make the movement look good with the png tilting
+    I might want to remove moving normally side to side, to add some challenge and make the movement look good with the png tilting, maybe they could dash side to side?
     effect for tilting?
     PIXILATE (MAKE IT LOOK SH**Y)
     zoom refining still
@@ -8,6 +8,12 @@ IMMIDEATE
     make it so you can just zoom out the main camera freely and not just have 2 settings
     make the border push the player and asteroids
     pause with enter (just give the game a blue tint until you press it again)
+
+    CODING
+    object pool bullets
+    Object pool asteroids?
+    object pool pickups
+    
 
 FEATURES?
     boost (only boost forward, destroy small asteroids but big asteroids extra damage to player)
@@ -27,3 +33,10 @@ UPGRADES
     damage upgrade
     boost upgrade
     shockwave upgrade
+
+WEAPONS
+    all reqire ammo except base
+    Shotgun
+    Big bomb, limited of them and must craft more
+    sniper, with zoom to what it will hit
+    chain lightning

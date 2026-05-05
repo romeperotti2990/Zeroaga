@@ -1,6 +1,6 @@
 make it so that the projectiles dont have a rigidbody and just code the asteroids to move maybe
 add the points and particles that suck into the player 
-
+make it so the player can push around asteroids
 
 
 LATER

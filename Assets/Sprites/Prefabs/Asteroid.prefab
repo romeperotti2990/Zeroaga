@@ -197,5 +197,8 @@ MonoBehaviour:
   maxVelocity: 12
   explosionParticlePrefab: {fileID: 5438358786955506324, guid: 0d14e42ec32e3b747bfc6e5870f0bf82, type: 3}
   hitEffectPrefab: {fileID: 5438358786955506324, guid: 5aab3527df4531a48a088bc84db4c7eb, type: 3}
+  pointPickupPrefab: {fileID: 1563235666091672982, guid: a1befcf9f4f438443b1054796a9c3bb9, type: 3}
+  basePointValue: 1
+  pointValuePerScale: 2
   rb: {fileID: 0}
   maxDistanceFromPlayer: 30

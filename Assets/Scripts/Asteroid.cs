@@ -21,6 +21,9 @@ public class Asteroid : MonoBehaviour
     public float maxVelocity = 12f;
     public GameObject explosionParticlePrefab;  // Particle effect when asteroid is destroyed
     public GameObject hitEffectPrefab; // Particle effect when asteroid is hit
+    public GameObject pointPickupPrefab; // Collectible that homes into the player and awards points
+    public int basePointValue = 1;
+    public float pointValuePerScale = 2f;
 
     [HideInInspector] public Rigidbody2D rb;
 
@@ -253,8 +256,43 @@ public class Asteroid : MonoBehaviour
         health -= damage;
         if (health <= 0)
         {
+            SpawnPointPickup();
             Split();
             Destroy(gameObject);
+        }
+    }
+
+    void SpawnPointPickup()
+    {
+        int pointValue = Mathf.Max(basePointValue, Mathf.RoundToInt(transform.localScale.x * pointValuePerScale));
+
+        GameObject pickup = null;
+        if (pointPickupPrefab != null)
+        {
+            pickup = Instantiate(pointPickupPrefab, transform.position, Quaternion.identity);
+        }
+        else
+        {
+            pickup = new GameObject("PointPickup");
+            pickup.transform.position = transform.position;
+
+            CircleCollider2D collider2D = pickup.AddComponent<CircleCollider2D>();
+            collider2D.isTrigger = true;
+            collider2D.radius = 0.15f;
+
+            Rigidbody2D body = pickup.AddComponent<Rigidbody2D>();
+            body.bodyType = RigidbodyType2D.Kinematic;
+            body.gravityScale = 0f;
+            body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+
+            PointPickup pointPickup = pickup.AddComponent<PointPickup>();
+            pointPickup.points = pointValue;
+        }
+
+        PointPickup pickupScript = pickup.GetComponent<PointPickup>();
+        if (pickupScript != null)
+        {
+            pickupScript.points = pointValue;
         }
     }
 

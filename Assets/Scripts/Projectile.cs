@@ -51,6 +51,11 @@ public class Projectile : MonoBehaviour
             return;
         }
 
+        if (other.GetComponent<PointPickup>() != null)
+        {
+            return;
+        }
+
         // Destroy on any other trigger collision (asteroids, enemies, etc.)
         Destroy(gameObject);
     }
@@ -60,6 +65,10 @@ public class Projectile : MonoBehaviour
         // Also handle non-trigger collisions
         if (collision.collider != null && collision.collider.CompareTag("WorldBorder"))
             return;
+
+        if (collision.collider != null && collision.collider.GetComponent<PointPickup>() != null)
+            return;
+
         Destroy(gameObject);
     }
 
