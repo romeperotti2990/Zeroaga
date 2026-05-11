@@ -14,27 +14,28 @@ public class ScoreManager : MonoBehaviour
                 return _instance;
             }
 
-            GameObject existing = GameObject.Find("ScoreManager");
-            if (existing != null)
+            _instance = FindObjectOfType<ScoreManager>();
+            if (_instance != null)
             {
-                _instance = existing.GetComponent<ScoreManager>();
-                if (_instance != null)
-                {
-                    return _instance;
-                }
+                return _instance;
             }
 
             GameObject created = new GameObject("ScoreManager");
             _instance = created.AddComponent<ScoreManager>();
-            DontDestroyOnLoad(created);
             return _instance;
         }
     }
 
     public int CurrentPoints { get; private set; }
+    public int CollectedPickups { get; private set; }
+
+    [Header("UI")]
+    public Text scoreText;
+    public bool createTextIfMissing = true;
+    public Vector2 textOffset = new Vector2(18f, -18f);
+    public int fontSize = 32;
 
     Canvas _canvas;
-    Text _scoreText;
 
     void Awake()
     {
@@ -45,8 +46,13 @@ public class ScoreManager : MonoBehaviour
         }
 
         _instance = this;
-        DontDestroyOnLoad(gameObject);
-        EnsureUI();
+        ResolveUI();
+        RefreshUI();
+    }
+
+    void OnEnable()
+    {
+        ResolveUI();
         RefreshUI();
     }
 
@@ -58,55 +64,73 @@ public class ScoreManager : MonoBehaviour
         }
 
         CurrentPoints += amount;
+        CollectedPickups += 1;
         RefreshUI();
     }
 
-    void EnsureUI()
+    void ResolveUI()
     {
-        if (_scoreText != null)
-        {
-            return;
-        }
-
-        _canvas = FindObjectOfType<Canvas>();
         if (_canvas == null)
         {
-            GameObject canvasObject = new GameObject("ScoreCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-            _canvas = canvasObject.GetComponent<Canvas>();
-            _canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-
-            CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
-
-            DontDestroyOnLoad(canvasObject);
+            _canvas = GetComponentInParent<Canvas>();
+            if (_canvas == null)
+            {
+                _canvas = FindObjectOfType<Canvas>();
+            }
         }
 
+        if (scoreText == null)
+        {
+            scoreText = GetComponentInChildren<Text>(true);
+        }
+
+        if (scoreText == null && createTextIfMissing && _canvas != null)
+        {
+            scoreText = CreateTextLabel(_canvas.transform);
+        }
+
+        if (scoreText != null)
+        {
+            RectTransform rectTransform = scoreText.rectTransform;
+            rectTransform.anchorMin = new Vector2(0f, 1f);
+            rectTransform.anchorMax = new Vector2(0f, 1f);
+            rectTransform.pivot = new Vector2(0f, 1f);
+            rectTransform.anchoredPosition = textOffset;
+            rectTransform.sizeDelta = new Vector2(500f, 80f);
+            scoreText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            scoreText.fontSize = fontSize;
+            scoreText.alignment = TextAnchor.UpperLeft;
+            scoreText.color = Color.white;
+            scoreText.raycastTarget = false;
+            scoreText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            scoreText.verticalOverflow = VerticalWrapMode.Overflow;
+            scoreText.enabled = true;
+        }
+    }
+
+    Text CreateTextLabel(Transform parent)
+    {
         GameObject textObject = new GameObject("ScoreText", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
-        textObject.transform.SetParent(_canvas.transform, false);
+        textObject.transform.SetParent(parent, false);
 
-        RectTransform rectTransform = textObject.GetComponent<RectTransform>();
-        rectTransform.anchorMin = new Vector2(0f, 1f);
-        rectTransform.anchorMax = new Vector2(0f, 1f);
-        rectTransform.pivot = new Vector2(0f, 1f);
-        rectTransform.anchoredPosition = new Vector2(18f, -18f);
-        rectTransform.sizeDelta = new Vector2(360f, 60f);
-
-        _scoreText = textObject.GetComponent<Text>();
-        _scoreText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-        _scoreText.fontSize = 32;
-        _scoreText.alignment = TextAnchor.UpperLeft;
-        _scoreText.color = Color.white;
-        _scoreText.raycastTarget = false;
+        Text label = textObject.GetComponent<Text>();
+        label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        label.fontSize = fontSize;
+        label.alignment = TextAnchor.UpperLeft;
+        label.color = Color.white;
+        label.raycastTarget = false;
+        label.horizontalOverflow = HorizontalWrapMode.Overflow;
+        label.verticalOverflow = VerticalWrapMode.Overflow;
+        return label;
     }
 
     void RefreshUI()
     {
-        EnsureUI();
-        if (_scoreText != null)
+        ResolveUI();
+
+        if (scoreText != null)
         {
-            _scoreText.text = $"Points: {CurrentPoints}";
+            scoreText.text = $"Score: {CurrentPoints}\nPickups: {CollectedPickups}";
         }
     }
 }

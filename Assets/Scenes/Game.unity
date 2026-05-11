@@ -203,7 +203,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 372, y: -167}
-  m_SizeDelta: {x: 200, y: 200}
+  m_SizeDelta: {x: 389.957, y: 389.957}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &473776039
 MonoBehaviour:
@@ -225,7 +225,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 0}
+  m_Texture: {fileID: 10912, guid: 0000000000000000f000000000000000, type: 0}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -929,6 +929,18 @@ PrefabInstance:
     - target: {fileID: 6865149830182685983, guid: b8a9cec23b0b0a248ac91b8e33c42c4e, type: 3}
       propertyPath: m_ActionEvents.Array.data[14].m_PersistentCalls.m_Calls.Array.data[1].m_CallState
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8498796698264521122, guid: b8a9cec23b0b0a248ac91b8e33c42c4e, type: 3}
+      propertyPath: m_BackGroundColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8498796698264521122, guid: b8a9cec23b0b0a248ac91b8e33c42c4e, type: 3}
+      propertyPath: m_BackGroundColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8498796698264521122, guid: b8a9cec23b0b0a248ac91b8e33c42c4e, type: 3}
+      propertyPath: m_BackGroundColor.r
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:

@@ -9,17 +9,17 @@ public class PointPickup : MonoBehaviour
     public float collectDistance = 0.75f;
     public float lifeTime = 300f;
     public Vector2 initialVelocity = Vector2.zero;
-    public Color pickupColor = Color.white;
-    public Color pickupFlashColor = Color.black;
     public float projectilePushStrength = 4f;
-    public float attractionSpeed = 10f;
     public float attractionAcceleration = 140f;
     public float attractionMaxSpeed = 32f;
     public float attractionMinSpeed = 10f;
-    public float slideDeceleration = 1.75f;
     public float initialSpinSpeed = 120f;
     public float flashSpeed = 6f;
     public float collectShrinkDuration = 0.18f;
+    public float visualScale = 0.75f;
+
+    public Color pickupColor = Color.white;
+    public Color pickupFlashColor = Color.black;
 
     Rigidbody2D _rb;
     Vector2 _velocity;
@@ -28,9 +28,8 @@ public class PointPickup : MonoBehaviour
     bool _isCollecting;
     float _collectTimer;
     Vector3 _collectStartScale;
-    SpriteRenderer _spriteRenderer;
-    SpriteRenderer _outlineRenderer;
-    static Sprite _triangleSprite;
+    Transform _visualRoot;
+    SpriteRenderer[] _visualRenderers;
 
     void Start()
     {
@@ -52,7 +51,7 @@ public class PointPickup : MonoBehaviour
         _rb.angularDamping = 0f;
         _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
-        ConfigureVisuals();
+        SetupVisuals();
 
         _velocity = initialVelocity;
         _spinSpeed = Random.Range(-initialSpinSpeed, initialSpinSpeed);
@@ -64,56 +63,108 @@ public class PointPickup : MonoBehaviour
         }
     }
 
-    void ConfigureVisuals()
+    void SetupVisuals()
     {
-        if (_triangleSprite == null)
+        SpriteRenderer rootRenderer = GetComponent<SpriteRenderer>();
+        SpriteRenderer[] childRenderers = GetComponentsInChildren<SpriteRenderer>(true);
+        bool hasChildVisuals = false;
+
+        for (int i = 0; i < childRenderers.Length; i++)
         {
-            _triangleSprite = CreateTriangleSprite();
+            if (childRenderers[i] != null && childRenderers[i].transform != transform)
+            {
+                hasChildVisuals = true;
+                break;
+            }
         }
 
-        _spriteRenderer = GetComponent<SpriteRenderer>();
-        if (_spriteRenderer == null)
+        if (hasChildVisuals)
         {
-            _spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
+            _visualRenderers = childRenderers;
+            _visualRoot = FindVisualRootFromRenderers(childRenderers);
+            if (_visualRoot == null)
+            {
+                _visualRoot = transform;
+            }
         }
-
-        _spriteRenderer.sprite = _triangleSprite;
-        _spriteRenderer.sortingOrder = 20;
-
-        Transform outlineTransform = transform.Find("Outline");
-        if (outlineTransform == null)
+        else if (rootRenderer != null)
         {
-            GameObject outlineObject = new GameObject("Outline");
-            outlineObject.transform.SetParent(transform, false);
-            outlineObject.transform.localPosition = Vector3.zero;
-            outlineObject.transform.localRotation = Quaternion.identity;
-            outlineObject.transform.localScale = Vector3.one * 1.12f;
+            _visualRoot = new GameObject("VisualRoot").transform;
+            _visualRoot.SetParent(transform, false);
+            _visualRoot.localPosition = Vector3.zero;
+            _visualRoot.localRotation = Quaternion.identity;
+            _visualRoot.localScale = Vector3.one;
 
-            _outlineRenderer = outlineObject.AddComponent<SpriteRenderer>();
+            SpriteRenderer copiedRenderer = _visualRoot.gameObject.AddComponent<SpriteRenderer>();
+            CopyRendererSettings(rootRenderer, copiedRenderer);
+            rootRenderer.enabled = false;
+            _visualRenderers = new[] { copiedRenderer };
         }
         else
         {
-            _outlineRenderer = outlineTransform.GetComponent<SpriteRenderer>();
-            if (_outlineRenderer == null)
-            {
-                _outlineRenderer = outlineTransform.gameObject.AddComponent<SpriteRenderer>();
-            }
+            _visualRoot = new GameObject("VisualRoot").transform;
+            _visualRoot.SetParent(transform, false);
+            _visualRoot.localPosition = Vector3.zero;
+            _visualRoot.localRotation = Quaternion.identity;
+            _visualRoot.localScale = Vector3.one;
+
+            GameObject visualObject = new GameObject("Visual");
+            visualObject.transform.SetParent(_visualRoot, false);
+            visualObject.transform.localPosition = Vector3.zero;
+            visualObject.transform.localRotation = Quaternion.identity;
+            visualObject.transform.localScale = Vector3.one;
+
+            SpriteRenderer spriteRenderer = visualObject.AddComponent<SpriteRenderer>();
+            spriteRenderer.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
+            spriteRenderer.sortingOrder = 20;
+            _visualRenderers = new[] { spriteRenderer };
         }
 
-        _outlineRenderer.sprite = _triangleSprite;
-        _outlineRenderer.color = Color.black;
-        _outlineRenderer.sortingOrder = 19;
-        _spriteRenderer.color = pickupColor;
+        ApplyVisualScale();
+        ApplyVisualColor(pickupColor);
+    }
 
-        ParticleSystem particleSystem = GetComponent<ParticleSystem>();
-        if (particleSystem != null)
+    void CopyRendererSettings(SpriteRenderer source, SpriteRenderer target)
+    {
+        if (source == null || target == null)
         {
-            ParticleSystemRenderer particleRenderer = GetComponent<ParticleSystemRenderer>();
-            if (particleRenderer != null)
+            return;
+        }
+
+        target.sprite = source.sprite;
+        target.color = source.color;
+        target.flipX = source.flipX;
+        target.flipY = source.flipY;
+        target.sortingLayerID = source.sortingLayerID;
+        target.sortingOrder = source.sortingOrder;
+        target.sharedMaterial = source.sharedMaterial;
+        target.drawMode = source.drawMode;
+        target.size = source.size;
+        target.maskInteraction = source.maskInteraction;
+        target.enabled = true;
+    }
+
+    Transform FindVisualRootFromRenderers(SpriteRenderer[] renderers)
+    {
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            if (renderers[i] != null && renderers[i].transform != transform)
             {
-                particleRenderer.enabled = false;
+                return renderers[i].transform.parent != null ? renderers[i].transform.parent : renderers[i].transform;
             }
         }
+
+        return null;
+    }
+
+    void ApplyVisualScale()
+    {
+        if (_visualRoot == null)
+        {
+            return;
+        }
+
+        _visualRoot.localScale = Vector3.one * Mathf.Max(0.01f, visualScale);
     }
 
     void Update()
@@ -169,21 +220,14 @@ public class PointPickup : MonoBehaviour
             _velocity = Vector2.zero;
         }
 
-        _flashTimer += Time.deltaTime * flashSpeed;
-        float flashPhase = Mathf.PingPong(_flashTimer, 1f);
-        if (_spriteRenderer != null)
-        {
-            _spriteRenderer.color = Color.Lerp(pickupFlashColor, pickupColor, flashPhase);
-        }
-
         if (_rb != null)
         {
             _rb.linearVelocity = _velocity;
         }
-        else
-        {
-            transform.position += (Vector3)(_velocity * Time.deltaTime);
-        }
+
+        _flashTimer += Time.deltaTime * flashSpeed;
+        float flashPhase = Mathf.PingPong(_flashTimer, 1f);
+        ApplyVisualColor(Color.Lerp(pickupFlashColor, pickupColor, flashPhase));
 
         transform.Rotate(0f, 0f, _spinSpeed * Time.deltaTime);
     }
@@ -239,92 +283,6 @@ public class PointPickup : MonoBehaviour
         }
     }
 
-    static Sprite CreateTriangleSprite()
-    {
-        const int size = 32;
-        Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
-        texture.wrapMode = TextureWrapMode.Clamp;
-        texture.filterMode = FilterMode.Bilinear;
-
-        Color clear = new Color(0f, 0f, 0f, 0f);
-        Color fill = Color.white;
-
-        float halfBase = 0.36f;
-        float height = halfBase * Mathf.Sqrt(3f);
-        Vector2 top = new Vector2(0.5f, 0.5f + (height * 0.5f));
-        Vector2 left = new Vector2(0.5f - halfBase, 0.5f - (height * 0.5f));
-        Vector2 right = new Vector2(0.5f + halfBase, 0.5f - (height * 0.5f));
-
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                Vector2 p = new Vector2((x + 0.5f) / size, (y + 0.5f) / size);
-                texture.SetPixel(x, y, PointInTriangle(p, top, left, right) ? fill : clear);
-            }
-        }
-
-        AddTriangleBorder(texture, Color.black, top, left, right);
-        texture.Apply();
-        return Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f), 32f);
-    }
-
-    static void AddTriangleBorder(Texture2D texture, Color borderColor, Vector2 top, Vector2 left, Vector2 right)
-    {
-        int size = texture.width;
-        int borderThickness = 2;
-
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                Vector2 p = new Vector2((x + 0.5f) / size, (y + 0.5f) / size);
-                if (!PointInTriangle(p, top, left, right))
-                {
-                    continue;
-                }
-
-                bool nearEdge = false;
-                for (int oy = -borderThickness; oy <= borderThickness && !nearEdge; oy++)
-                {
-                    for (int ox = -borderThickness; ox <= borderThickness; ox++)
-                    {
-                        int nx = Mathf.Clamp(x + ox, 0, size - 1);
-                        int ny = Mathf.Clamp(y + oy, 0, size - 1);
-                        Vector2 np = new Vector2((nx + 0.5f) / size, (ny + 0.5f) / size);
-                        if (!PointInTriangle(np, top, left, right))
-                        {
-                            nearEdge = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (nearEdge)
-                {
-                    texture.SetPixel(x, y, borderColor);
-                }
-            }
-        }
-    }
-
-    static bool PointInTriangle(Vector2 p, Vector2 a, Vector2 b, Vector2 c)
-    {
-        float d1 = Sign(p, a, b);
-        float d2 = Sign(p, b, c);
-        float d3 = Sign(p, c, a);
-
-        bool hasNeg = (d1 < 0f) || (d2 < 0f) || (d3 < 0f);
-        bool hasPos = (d1 > 0f) || (d2 > 0f) || (d3 > 0f);
-
-        return !(hasNeg && hasPos);
-    }
-
-    static float Sign(Vector2 p1, Vector2 p2, Vector2 p3)
-    {
-        return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
-    }
-
     void Collect()
     {
         if (_isCollecting)
@@ -362,21 +320,32 @@ public class PointPickup : MonoBehaviour
         float easedT = Mathf.SmoothStep(0f, 1f, t);
 
         transform.position = Vector3.Lerp(transform.position, target.position, easedT * 0.35f);
-        transform.localScale = Vector3.Lerp(_collectStartScale, Vector3.zero, easedT);
-
-        if (_spriteRenderer != null)
+        if (_visualRoot != null)
         {
-            _spriteRenderer.color = Color.Lerp(pickupColor, Color.clear, easedT);
+            _visualRoot.localScale = Vector3.one * Mathf.Lerp(visualScale, 0f, easedT);
         }
 
-        if (_outlineRenderer != null)
-        {
-            _outlineRenderer.color = Color.Lerp(Color.black, Color.clear, easedT);
-        }
+        ApplyVisualColor(Color.Lerp(pickupColor, Color.clear, easedT));
 
         if (t >= 1f)
         {
             Destroy(gameObject);
+        }
+    }
+
+    void ApplyVisualColor(Color color)
+    {
+        if (_visualRenderers == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < _visualRenderers.Length; i++)
+        {
+            if (_visualRenderers[i] != null)
+            {
+                _visualRenderers[i].color = color;
+            }
         }
     }
 }
