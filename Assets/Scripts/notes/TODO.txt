@@ -1,8 +1,8 @@
 make it so the player can push around asteroids
 make the score show why you are getting score like in ultrakill (+PICKUP +ASTEROID SPLIT) and then have it fade out
 instead of tilting make the sprite rotate so the back is always emitting the particle (make sure it does not look snappy)
-make the world limit push the asteroids
+make the world limit push the asteroids and the player
 FIX BLOOM
-make the world limit push you
 minimap show player viewpoint?
 SFX
+improve minimap open and close animation
