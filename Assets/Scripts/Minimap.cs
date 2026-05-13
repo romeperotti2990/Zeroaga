@@ -22,7 +22,6 @@ public class Minimap : MonoBehaviour
 
 	[Header("Map Controls")]
 	public float panSpeed = 150f;
-	public float dragPanSpeed = 0.085f;
 	public float zoomSpeed = 120f;
 	public float minMapZoom = 6f;
 	public float maxMapZoom = 80f;
@@ -36,8 +35,10 @@ public class Minimap : MonoBehaviour
 
 	RectTransform _iconContainer;
 	RectTransform _playerIconRT;
-	Image _playerIconImage;
 	RectTransform _mapRect;
+	RenderTexture _sourceRenderTexture;
+	Texture _sourceImageTexture;
+	RenderTexture _runtimeRenderTexture;
 	Vector2 _closedAnchoredPosition;
 	Vector2 _closedSizeDelta;
 	Vector2 _closedAnchorMin;
@@ -45,8 +46,6 @@ public class Minimap : MonoBehaviour
 	Vector2 _closedOffsetMin;
 	Vector2 _closedOffsetMax;
 	Vector2 _closedPivot;
-	Quaternion _closedCameraRotation;
-	Vector3 _closedCameraPosition;
 	float _closedZoom;
 	float _openZoom;
 	float _currentOpenZoom;
@@ -73,6 +72,8 @@ public class Minimap : MonoBehaviour
 		}
 
 		ResolveWorldCenter();
+		_sourceRenderTexture = minimapCamera.targetTexture;
+		_sourceImageTexture = minimapImage.texture;
 
 		// use the RawImage as parent for icons
 		_iconContainer = minimapImage.rectTransform;
@@ -88,11 +89,11 @@ public class Minimap : MonoBehaviour
 			var go = new GameObject("PlayerIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
 			go.transform.SetParent(_iconContainer, false);
 			_playerIconRT = go.GetComponent<RectTransform>();
-			_playerIconImage = go.GetComponent<Image>();
-			_playerIconImage.sprite = playerIconSprite ? playerIconSprite : Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
-			_playerIconImage.color = Color.white;
-			_playerIconImage.preserveAspect = true;
-			_playerIconImage.raycastTarget = false;
+			Image playerIconImage = go.GetComponent<Image>();
+			playerIconImage.sprite = playerIconSprite ? playerIconSprite : Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
+			playerIconImage.color = Color.white;
+			playerIconImage.preserveAspect = true;
+			playerIconImage.raycastTarget = false;
 		}
 
 		_playerIconRT.anchorMin = _playerIconRT.anchorMax = new Vector2(0.5f, 0.5f);
@@ -132,6 +133,7 @@ public class Minimap : MonoBehaviour
 		}
 
 		ApplyLayout(open, instant);
+		SyncOpenMapTexture(open);
 	}
 
 	void Update()
@@ -220,24 +222,29 @@ public class Minimap : MonoBehaviour
 			panInput.Normalize();
 		}
 
+		float zoomRatio = Mathf.Approximately(_openZoom, 0f) ? 1f : Mathf.Max(_currentOpenZoom, minMapZoom) / _openZoom;
+
 		if (panInput.sqrMagnitude > 0.0001f)
 		{
-			_panOffset += panInput * panSpeed * Time.unscaledDeltaTime;
+			_panOffset += panInput * panSpeed * zoomRatio * Time.unscaledDeltaTime;
 		}
 
-		Mouse mouse = Mouse.current;
-		if (mouse != null)
+		Keyboard zoomKeyboard = Keyboard.current;
+		if (zoomKeyboard != null)
 		{
-			float scroll = mouse.scroll.ReadValue().y;
-			if (!Mathf.Approximately(scroll, 0f))
+			float zoomDirection = 0f;
+			if (zoomKeyboard.xKey.isPressed)
 			{
-				_currentOpenZoom = Mathf.Clamp(_currentOpenZoom - scroll * zoomSpeed * 0.01f, minMapZoom, maxMapZoom);
+				zoomDirection -= 1f;
+			}
+			if (zoomKeyboard.cKey.isPressed)
+			{
+				zoomDirection += 1f;
 			}
 
-			if (mouse.rightButton.isPressed)
+			if (!Mathf.Approximately(zoomDirection, 0f))
 			{
-				Vector2 drag = mouse.delta.ReadValue();
-				_panOffset -= drag * dragPanSpeed;
+				_currentOpenZoom = Mathf.Clamp(_currentOpenZoom - zoomDirection * zoomSpeed * 0.01f * Time.unscaledDeltaTime, minMapZoom, maxMapZoom);
 			}
 		}
 	}
@@ -338,8 +345,6 @@ public class Minimap : MonoBehaviour
 			return;
 		}
 
-		_closedCameraPosition = minimapCamera.transform.position;
-		_closedCameraRotation = minimapCamera.transform.rotation;
 		_closedZoom = minimapCamera.orthographic ? minimapCamera.orthographicSize : minimapCamera.fieldOfView;
 		_openZoom = Mathf.Clamp(_closedZoom * openMapZoomMultiplier, minMapZoom, maxMapZoom);
 		_currentOpenZoom = _openZoom;
@@ -387,6 +392,57 @@ public class Minimap : MonoBehaviour
 		rectTransform.localScale = Vector3.one;
 	}
 
+	void SyncOpenMapTexture(bool open)
+	{
+		if (minimapCamera == null || minimapImage == null)
+		{
+			return;
+		}
+
+		if (!open)
+		{
+			if (_runtimeRenderTexture != null)
+			{
+				minimapCamera.targetTexture = _sourceRenderTexture;
+				minimapImage.texture = _sourceImageTexture;
+			}
+
+			return;
+		}
+
+		RectTransform rectTransform = _mapRect != null ? _mapRect : minimapImage.rectTransform;
+		float width = rectTransform.rect.width;
+		float height = rectTransform.rect.height;
+		if (width <= 0f || height <= 0f)
+		{
+			width = Screen.width;
+			height = Screen.height;
+		}
+
+		float aspect = width / height;
+		int sourceHeight = _sourceRenderTexture != null ? _sourceRenderTexture.height : (_sourceImageTexture != null ? _sourceImageTexture.height : 2000);
+		int targetWidth = Mathf.Max(1, Mathf.RoundToInt(sourceHeight * aspect));
+		int targetHeight = Mathf.Max(1, sourceHeight);
+
+		if (_runtimeRenderTexture == null || _runtimeRenderTexture.width != targetWidth || _runtimeRenderTexture.height != targetHeight)
+		{
+			if (_runtimeRenderTexture != null)
+			{
+				_runtimeRenderTexture.Release();
+				Object.Destroy(_runtimeRenderTexture);
+			}
+
+			_runtimeRenderTexture = new RenderTexture(targetWidth, targetHeight, 24)
+			{
+				name = "RuntimeMinimapTexture"
+			};
+			_runtimeRenderTexture.Create();
+		}
+
+		minimapCamera.targetTexture = _runtimeRenderTexture;
+		minimapImage.texture = _runtimeRenderTexture;
+	}
+
 	void ResolveWorldCenter()
 	{
 		if (worldCenterOverride != null)
@@ -403,6 +459,16 @@ public class Minimap : MonoBehaviour
 		}
 
 		_worldCenter = Vector3.zero;
+	}
+
+	void OnDestroy()
+	{
+		if (_runtimeRenderTexture != null)
+		{
+			_runtimeRenderTexture.Release();
+			Object.Destroy(_runtimeRenderTexture);
+			_runtimeRenderTexture = null;
+		}
 	}
 }
 

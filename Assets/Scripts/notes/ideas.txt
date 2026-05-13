@@ -13,6 +13,7 @@ CODING
     object pool bullets
     Object pool asteroids?
     object pool pickups
+    look for uneeded code in scripts
 
 
 FEATURES?

@@ -2,4 +2,5 @@ main menu has play exit and maybe settings
 pressing play shows new world or exsisting ones
 pressing new world should show a bunch of options (size, difficulty, whatnot)
 upon starting the world it spawns all resources
-leaving the world border makes you die instantly
+the world border push the player and asteroids/pickups inward with the particles
+this is not implemented yet, just the base gameplay.
